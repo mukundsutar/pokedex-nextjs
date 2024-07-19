@@ -1,12 +1,6 @@
-"use client";
 import React from "react";
-import useStore from "../api/store";
 
-export default function Navbar() {
-	const nextPokemon = useStore((state) => state.nextPokemon);
-	const previousPokemon = useStore((state) => state.previousPokemon);
-	const currPokemeon = useStore((state) => state.currPokemeon);
-
+export default function Navbar({ pokemonName }) {
 	return (
 		<>
 			<div className="navbar bg-base-100">
@@ -14,7 +8,7 @@ export default function Navbar() {
 					<a className="btn btn-ghost text-xl">Previous</a>
 				</div>
 				<div className="navbar-center">
-					<p className="text-3xl ">Bulbasaur</p>
+					<p className="text-3xl capitalize">Bulbasaur</p>
 				</div>
 				<div className="navbar-end">
 					<a className="btn btn-ghost text-xl">Next</a>
