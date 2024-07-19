@@ -1,6 +1,8 @@
 import List from "./components/list";
 import Details from "./components/details";
 import Navbar from "./components/navbar";
+import { getData } from "./api/apiRequests";
+import Pokemon from "./[pokemon]/page";
 
 export default async function Home() {
 	const pokemonList = [
@@ -157,31 +159,12 @@ export default async function Home() {
 		"Mew",
 	];
 
-	const dynamicData = await fetch(`https://pokeapi.co/api/v2/pokemon/ditto`, {
-		cache: "no-store",
-	});
+	const data = await getData(10);
+	console.log(data.name);
 
 	return (
 		<main className="flex min-h-screen flex-col items-center justify-between ">
-			<div className="drawer lg:drawer-open">
-				{/* toggle checkbox */}
-				<input
-					id="my-drawer-2"
-					type="checkbox"
-					className="drawer-toggle"
-				/>
-
-				{/* page content */}
-				<div className="drawer-content flex flex-col items-center justify-center">
-					<Navbar />
-					<Details />
-				</div>
-
-				{/* sidebar */}
-				<div className="drawer-side drawer-open">
-					<List />
-				</div>
-			</div>
+			<Pokemon />
 		</main>
 	);
 }
