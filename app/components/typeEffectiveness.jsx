@@ -1,78 +1,79 @@
-import React from "react";
-import { getTypeEffectiveness } from "../api/apiRequests";
+"use client";
+import React, { useEffect, useState } from "react";
+import typeEffectivenessData from "../api/typeEffectivenessData.json";
+import clsx from "clsx";
+import TypeEffectivenessRow from "./TypeEffectivenessRow";
 
-export default async function TypeEffectiveness({ pokemonDataTypes }) {
-	// console.log(pokemonDataTypes);
-	const double_damage_from = [];
-	const normal_damage_from = [];
-	const half_damage_from = [];
-	const no_damage_from = [];
+export default function TypeEffectiveness({ pokemonDataTypes }) {
+  const [doubleDamageFrom, setDoubleDamageFrom] = useState([]);
+  const [normalDamageFrom, setNormalDamageFrom] = useState([]);
+  const [halfDamageFrom, setHalfDamageFrom] = useState([]);
+  const [noDamageFrom, setNoDamageFrom] = useState([]);
 
-	await Promise.all(
-		pokemonDataTypes.map(async (item) => {
-			const typeInfo = await getTypeEffectiveness(item.type.name);
+  useEffect(() => {
+    const double_damage_from = [];
+    const normal_damage_from = [];
+    const half_damage_from = [];
+    const no_damage_from = [];
 
-			typeInfo.damage_relations.double_damage_from.forEach((item) => {
-				if (double_damage_from.indexOf(item.name) == -1) {
-					double_damage_from.push(item.name);
-				}
-			});
-			typeInfo.damage_relations.half_damage_from.forEach((item) => {
-				if (half_damage_from.indexOf(item.name) == -1) {
-					half_damage_from.push(item.name);
-				}
-			});
-			typeInfo.damage_relations.no_damage_from.forEach((item) => {
-				if (no_damage_from.indexOf(item.name) == -1) {
-					no_damage_from.push(item.name);
-				}
-			});
-			typeInfo.damage_relations.no_damage_from.forEach((item) => {
-				if (
-					normal_damage_from.indexOf(item.name) == -1 &&
-					double_damage_from.indexOf(item.name) == -1 &&
-					half_damage_from.indexOf(item.name) == -1 &&
-					no_damage_from.indexOf(item.name) == -1
-				) {
-					normal_damage_from.push(item.name);
-				}
-			});
-		})
-	);
+    // Helper function to calculate damage multiplier for a type
+    const calculateEffectiveness = (type) => {
+      let effectiveness = 1;
+      pokemonDataTypes.forEach((pokemonType) => {
+        const typeName = pokemonType.type.name;
+        effectiveness *= typeEffectivenessData[type][typeName] || 1;
+      });
+      return effectiveness;
+    };
 
-	pokemonDataTypes.forEach((item) => {
-		const typeName = item.type.name;
-	  
-		if (!double_damage_from.has(typeName) && !half_damage_from.has(typeName) && !no_damage_from.has(typeName)) {
-		  normal_damage_from.add(typeName);
-		}
-	  });
+    // Calculate effectiveness for all types
+    Object.keys(typeEffectivenessData).forEach((type) => {
+      const effectiveness = calculateEffectiveness(type);
+      if (effectiveness === 2) double_damage_from.push(type);
+      else if (effectiveness === 1) normal_damage_from.push(type);
+      else if (effectiveness === 0.5) half_damage_from.push(type);
+      else if (effectiveness === 0) no_damage_from.push(type);
+    });
 
-	console.log("double_damage_from: " + double_damage_from);
-	console.log("normal_damage_from: " + normal_damage_from);
-	console.log("half_damage_from: " + half_damage_from);
-	console.log("no_damage_from: " + no_damage_from);
+    setDoubleDamageFrom(double_damage_from);
+    setNormalDamageFrom(normal_damage_from);
+    setHalfDamageFrom(half_damage_from);
+    setNoDamageFrom(no_damage_from);
+  }, [pokemonDataTypes]);
 
-	return (
-		<>
-			<div className="hero h-full w-full bg-base-200">
-				<div className="hero-content w-full lg:flex-row">
-					<div className="card flex w-full flex-row bg-base-100 shadow-xl">
-						<div className="card-body">
-							<h2 className="card-title ">Type effectiveness</h2>
-							<h2 className="card-title">Damaged normally by:</h2>
-							<h2 className="card-title">Weak to:</h2>
-							<h2 className="card-title">Immune to:</h2>
-							<h2 className="card-title">Resistant to:</h2>
-						</div>
-					</div>
-				</div>
-			</div>
-		</>
-	);
-}
-
-async function getTypeInfo(typeName) {
-	const typeData = await getTypeEffectiveness(typeName);
-	return typeData;
+  return (
+    <div className="hero h-full w-full bg-base-200">
+      <div className="hero-content w-full lg:flex-row">
+        <div className="card flex w-full flex-row bg-base-100 shadow-xl">
+          <div className="card-body">
+            <h2 className="card-title">Type effectiveness</h2>
+            <div>
+              <h2 className="card-title">Damaged normally by (1x):</h2>
+              <div className="flex flex-wrap">
+                <TypeEffectivenessRow typeArray={normalDamageFrom} />
+              </div>
+            </div>
+            <div>
+              <h2 className="card-title">Weak to (2x):</h2>
+              <div className="flex flex-wrap">
+                <TypeEffectivenessRow typeArray={doubleDamageFrom} />
+              </div>
+            </div>
+            <div>
+              <h2 className="card-title">Immune to:</h2>
+              <div className="flex flex-wrap">
+                <TypeEffectivenessRow typeArray={noDamageFrom} />
+              </div>
+            </div>
+            <div>
+              <h2 className="card-title">Resistant to (½ˣ):</h2>
+              <div className="flex flex-wrap">
+                <TypeEffectivenessRow typeArray={halfDamageFrom} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
